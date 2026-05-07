@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dev Task Tracker</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background: #0f172a;
+        color: white;
+        padding: 20px;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      .top-form {
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #cbd5e1;
+      }
+
+      .top-form input,
+      .top-form select,
+      .top-form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 8px;
+        background: #334155;
+        color: white;
+      }
+
+      .top-form button {
+        margin-top: 15px;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        background: #3b82f6;
+        color: white;
+        cursor: pointer;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      @media (max-width: 1024px) {
+        .cards {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: #1e293b;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .card h2 {
+        margin-bottom: 10px;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        margin-bottom: 15px;
+        background: #334155;
+      }
+
+      .section {
+        margin-top: 15px;
+      }
+
+      .section h4 {
+        margin-bottom: 10px;
+        color: #93c5fd;
+      }
+
+      .requirement {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .badge {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .ready {
+        background: #14532d;
+        color: #86efac;
+      }
+
+      .not-ready {
+        background: #7f1d1d;
+        color: #fca5a5;
+      }
+
+      .delete-btn {
+        margin-top: 15px;
+        width: 100%;
+        background: #dc2626;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .action-btn {
+        background: #2563eb;
+        transition: 0.2s;
+      }
+
+      .action-btn:hover {
+        background: white;
+      }
+
+      .file-upload {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: #334155;
+        color: #e2e8f0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid transparent;
+        margin-top: 15px;
+      }
+
+      .file-upload:hover {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .file-upload input {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="appTitle">Orboevents Task Tracker</h1>
+
+    <div class="top-form">
+      <label class="form-label">Feature Title</label>
+      <input type="text" id="title" placeholder="Enter feature title" />
+
+      <label class="form-label">Status</label>
+      <select id="status">
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="testing">Testing</option>
+        <option value="done">Done</option>
+        <option value="blocked">Blocked</option>
+      </select>
+
+      <label class="form-label">Requirements</label>
+      <textarea
+        id="requirements"
+        placeholder="One requirement per line"
+      ></textarea>
+
+      <label class="form-label">Issues</label>
+      <textarea id="issues" placeholder="One issue per line"></textarea>
+
+      <label class="form-label">Notes</label>
+      <textarea id="notes" placeholder="Additional notes"></textarea>
+
+      <div
+        style="
+          display: flex;
+          gap: 20px;
+          align-items: center;
+          margin-top: 15px;
+          flex-wrap: wrap;
+        "
+      >
+        <label
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+          "
+        >
+          <input type="checkbox" id="tested" />
+          Tested
+        </label>
+
+        <label
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+          "
+        >
+          <input type="checkbox" id="completed" />
+          Completed
+        </label>
+      </div>
+
+      <div class="top-form">
+        <!-- form inputs -->
+
+        <button onclick="saveTask()" id="submitBtn">Add Task</button>
+
+        <!-- DITO -->
+        <div
+          style="
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+          "
+        >
+          <button onclick="exportTasks()">Export Backup</button>
+
+          <label class="file-upload">
+            📁 Import Backup
+            <input
+              type="file"
+              id="importFile"
+              accept=".json"
+              onchange="importTasks(event)"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <script>
+      let editingTaskId = null;
+
+      let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+      function saveTasks() {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+
+      function renderTasks() {
+        const cards = document.getElementById("cards");
+
+        cards.innerHTML = "";
+
+        tasks.forEach((task) => {
+          const isReady =
+            task.completed && task.tested && task.issues.length === 0;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+          <h2>${task.title}</h2>
+
+          <div class="status">
+            ${task.status}
+          </div>
+
+          <div class="section">
+            <h4>Requirements</h4>
+
+            ${task.requirements
+              .map(
+                (req, index) => `
+              <div class="requirement">
+                <input
+                  type="checkbox"
+                  ${req.done ? "checked" : ""}
+                  onchange="toggleRequirement(${task.id}, ${index})"
+                />
+                <span>${req.text}</span>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+
+          <div class="section">
+            <h4>Test Status</h4>
+
+            <p>Tested: ${task.tested ? "✅" : "❌"}</p>
+            <p>Completed: ${task.completed ? "✅" : "❌"}</p>
+          </div>
+
+          <div class="section">
+            <h4>Issues</h4>
+
+            ${
+              task.issues.length
+                ? task.issues.map((issue) => `<p>- ${issue}</p>`).join("")
+                : "<p>No Issues</p>"
+            }
+          </div>
+
+          <div class="section">
+            <h4>Notes</h4>
+
+            <p>${task.notes || "No Notes"}</p>
+          </div>
+
+          <div class="badge ${isReady ? "ready" : "not-ready"}">
+            ${isReady ? "🟢 DEMO READY" : "🔴 NOT READY"}
+          </div>
+
+      <div style="display:flex; gap:10px; margin-top:15px;">
+            <button
+              style="
+                flex:1;
+                background:#2563eb;
+                border:none;
+                padding:10px;
+                border-radius:8px;
+                color:white;
+                cursor:pointer;
+                border-radius:20px
+                hover:background:#2522eb;
+              "
+              class="action-btn"
+              onclick="editTask(${task.id})"
+            >
+              Edit
+            </button>
+
+            <button
+              class="delete-btn"
+              style="flex:1; margin-top:0; border-radius:20px"
+              onclick="confirmDelete(${task.id})"
+            >
+              Delete
+            </button>
+          </div>
+        `;
+
+          cards.appendChild(card);
+        });
+      }
+
+      function saveTask() {
+        const title = document.getElementById("title").value;
+
+        const status = document.getElementById("status").value;
+
+        const requirements = document
+          .getElementById("requirements")
+          .value.split("\n")
+          .filter((r) => r.trim() !== "")
+          .map((r) => ({
+            text: r,
+            done: false,
+          }));
+
+        const issues = document
+          .getElementById("issues")
+          .value.split("\n")
+          .map((i) => i.trim())
+          .filter(Boolean);
+
+        const notes = document.getElementById("notes").value;
+
+        const tested = document.getElementById("tested").checked;
+
+        const completed = document.getElementById("completed").checked;
+
+        if (!title) {
+          alert("Feature title is required");
+          return;
+        }
+
+        if (editingTaskId) {
+          tasks = tasks.map((task) => {
+            if (task.id === editingTaskId) {
+              return {
+                ...task,
+                title,
+                status,
+                requirements: requirements.map((req, index) => ({
+                  text: req.text,
+                  done: task.requirements[index]?.done || false,
+                })),
+                issues,
+                notes,
+                tested,
+                completed,
+              };
+            }
+
+            return task;
+          });
+
+          editingTaskId = null;
+
+          document.getElementById("submitBtn").innerText = "Add Task";
+        } else {
+          const task = {
+            id: Date.now(),
+            title,
+            status,
+            requirements,
+            issues,
+            notes,
+            tested,
+            completed,
+          };
+
+          tasks.unshift(task);
+        }
+
+        saveTasks();
+
+        renderTasks();
+
+        clearForm();
+      }
+
+      function toggleRequirement(taskId, reqIndex) {
+        tasks = tasks.map((task) => {
+          if (task.id === taskId) {
+            task.requirements[reqIndex].done =
+              !task.requirements[reqIndex].done;
+          }
+
+          return task;
+        });
+
+        saveTasks();
+
+        renderTasks();
+      }
+
+      function deleteTask(id) {
+        tasks = tasks.filter((task) => task.id !== id);
+
+        saveTasks();
+
+        renderTasks();
+      }
+
+      renderTasks();
+
+      function editTask(id) {
+        const task = tasks.find((t) => t.id === id);
+
+        if (!task) return;
+
+        editingTaskId = id;
+
+        document.getElementById("title").value = task.title;
+
+        document.getElementById("status").value = task.status;
+
+        document.getElementById("requirements").value = task.requirements
+          .map((r) => r.text)
+          .join("\n");
+
+        document.getElementById("issues").value = task.issues.join("\n");
+
+        document.getElementById("notes").value = task.notes;
+
+        document.getElementById("tested").checked = task.tested;
+
+        document.getElementById("completed").checked = task.completed;
+
+        document.getElementById("submitBtn").innerText = "Update Task";
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }
+
+      function clearForm() {
+        document.getElementById("title").value = "";
+
+        document.getElementById("status").value = "pending";
+
+        document.getElementById("requirements").value = "";
+
+        document.getElementById("issues").value = "";
+
+        document.getElementById("notes").value = "";
+
+        document.getElementById("tested").checked = false;
+
+        document.getElementById("completed").checked = false;
+      }
+
+      function confirmDelete(id) {
+        const task = tasks.find((t) => t.id === id);
+
+        const confirmed = confirm(`Delete "${task.title}"?`);
+
+        if (confirmed) {
+          deleteTask(id);
+        }
+      }
+
+      function exportTasks() {
+        const dataStr = JSON.stringify(tasks, null, 2);
+
+        const blob = new Blob([dataStr], {
+          type: "application/json",
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+
+        a.download = "tasks-backup.json";
+
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }
+
+      function importTasks(event) {
+        const file = event.target.files[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            const imported = JSON.parse(e.target.result);
+
+            if (!Array.isArray(imported)) {
+              alert("Invalid backup file");
+              return;
+            }
+
+            tasks = imported;
+
+            saveTasks();
+
+            renderTasks();
+
+            alert("Backup restored successfully!");
+          } catch (error) {
+            alert("Invalid JSON file");
+          }
+        };
+
+        reader.readAsText(file);
+      }
+
+      function setDynamicTitle() {
+        const fileName =
+          window.location.pathname.split("/").pop().replace(".html", "") ||
+          "Task Tracker";
+
+        const formatted = fileName
+          .replace(/[-_]/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+
+        document.getElementById("appTitle").innerText = formatted;
+      }
+
+      setDynamicTitle();
+    </script>
+  </body>
+</html>
