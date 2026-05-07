@@ -68,7 +68,15 @@ This tool is ideal for:
 
 ## 📸 UI Preview
 
-*(Add your screenshot here)*
 
-```md
-![App Screenshot](screenshot.png)
+## 📸 Screenshot & Report Instructions
+
+To report UI updates or issues:
+
+1. Press **Win + Shift + S** to open Snipping Tool.
+2. Select **Rectangular Snip** and drag to capture the card or UI section.
+3. The screenshot will be copied automatically to your clipboard.
+4. Paste it using **Ctrl + V** in your message or report.
+5. Add a short description and send it to your boss or reviewer.
+
+Use this when sharing UI updates, bugs, or design feedback.
