@@ -186,14 +186,11 @@
       <label class="form-label">Feature Title</label>
       <input type="text" id="title" placeholder="Enter feature title" />
 
-      <label class="form-label">Status</label>
-      <select id="status">
-        <option value="pending">Pending</option>
-        <option value="in-progress">In Progress</option>
-        <option value="testing">Testing</option>
-        <option value="done">Done</option>
-        <option value="blocked">Blocked</option>
-      </select>
+      <label class="form-label">Description</label>
+      <textarea
+        id="description"
+        placeholder="Describe the task in detail..."
+      ></textarea>
 
       <label class="form-label">Requirements</label>
       <textarea
@@ -242,6 +239,35 @@
           Completed
         </label>
       </div>
+      <div
+        class=""
+        style="
+          display: flex;
+          gap: 20px;
+          align-items: center;
+          margin-top: 15px;
+          flex-wrap: wrap;
+        "
+      >
+        <div style="flex: 1; min-width: 220px">
+          <label class="form-label">Date Started</label>
+          <input type="date" id="dateStarted" />
+        </div>
+
+        <div style="flex: 1; min-width: 220px">
+          <label class="form-label">Target Finish Date</label>
+          <input type="date" id="targetDate" />
+        </div>
+      </div>
+
+      <label class="form-label">Status</label>
+      <select id="status">
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="testing">Testing</option>
+        <option value="done">Done</option>
+        <option value="blocked">Blocked</option>
+      </select>
 
       <div class="top-form">
         <!-- form inputs -->
@@ -271,11 +297,38 @@
           </label>
         </div>
       </div>
+      <label class="form-label">Set Task Title Here.</label>
+      <input type="text" id="appTitleInput" placeholder="Enter Task title" />
     </div>
 
     <div class="cards" id="cards"></div>
 
     <script>
+      function showSuccess(message) {
+        const alertBox = document.createElement("div");
+
+        alertBox.innerText = message;
+
+        alertBox.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: Arial;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+          `;
+
+        document.body.appendChild(alertBox);
+
+        setTimeout(() => {
+          alertBox.remove();
+        }, 2000);
+      }
+
       let editingTaskId = null;
 
       let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
@@ -293,15 +346,52 @@
           const isReady =
             task.completed && task.tested && task.issues.length === 0;
 
+          const today = new Date();
+
+          const isLate =
+            task.targetDate &&
+            new Date(task.targetDate) < today &&
+            !task.completed;
+
           const card = document.createElement("div");
           card.className = "card";
 
           card.innerHTML = `
+
+          ${
+            isLate
+              ? `
+      <div class="badge not-ready" style="margin-bottom:10px;">
+        ⏰ OVERDUE TASK
+      </div>
+    `
+              : ""
+          }
+    
           <h2>${task.title}</h2>
 
-          <div class="status">
+          <div class="section">
+              <h4>Description</h4>
+              <p>${task.description || "No Description"}</p>
+            </div>
+
+          <div class="status" style="margin-top: 10px">
             ${task.status}
           </div>
+
+          <div class="section">
+                <h4>Timeline</h4>
+
+                <p>
+                  <strong>Started:</strong>
+                  ${task.dateStarted || "No Date"}
+                </p>
+
+                <p>
+                  <strong>Target Finish:</strong>
+                  ${task.targetDate || "No Date"}
+                </p>
+              </div>
 
           <div class="section">
             <h4>Requirements</h4>
@@ -385,7 +475,13 @@
       function saveTask() {
         const title = document.getElementById("title").value;
 
+        const description = document.getElementById("description").value;
+
         const status = document.getElementById("status").value;
+
+        const dateStarted = document.getElementById("dateStarted").value;
+
+        const targetDate = document.getElementById("targetDate").value;
 
         const requirements = document
           .getElementById("requirements")
@@ -413,12 +509,18 @@
           return;
         }
 
+        if (!description) {
+          showSuccess("Feature description is required");
+          return;
+        }
+
         if (editingTaskId) {
           tasks = tasks.map((task) => {
             if (task.id === editingTaskId) {
               return {
                 ...task,
                 title,
+                description,
                 status,
                 requirements: requirements.map((req, index) => ({
                   text: req.text,
@@ -428,6 +530,8 @@
                 notes,
                 tested,
                 completed,
+                dateStarted,
+                targetDate,
               };
             }
 
@@ -441,12 +545,15 @@
           const task = {
             id: Date.now(),
             title,
+            description,
             status,
             requirements,
             issues,
             notes,
             tested,
             completed,
+            dateStarted,
+            targetDate,
           };
 
           tasks.unshift(task);
@@ -457,6 +564,8 @@
         renderTasks();
 
         clearForm();
+
+        showSuccess("Task added successfully!");
       }
 
       function toggleRequirement(taskId, reqIndex) {
@@ -480,6 +589,8 @@
         saveTasks();
 
         renderTasks();
+
+        showSuccess("Task deleted successfully!");
       }
 
       renderTasks();
@@ -492,6 +603,8 @@
         editingTaskId = id;
 
         document.getElementById("title").value = task.title;
+
+        document.getElementById("description").value = task.description;
 
         document.getElementById("status").value = task.status;
 
@@ -509,6 +622,9 @@
 
         document.getElementById("submitBtn").innerText = "Update Task";
 
+        document.getElementById("dateStarted").value = task.dateStarted || "";
+
+        document.getElementById("targetDate").value = task.targetDate || "";
         window.scrollTo({
           top: 0,
           behavior: "smooth",
@@ -517,6 +633,8 @@
 
       function clearForm() {
         document.getElementById("title").value = "";
+
+        document.getElementById("description").value = "";
 
         document.getElementById("status").value = "pending";
 
@@ -529,6 +647,10 @@
         document.getElementById("tested").checked = false;
 
         document.getElementById("completed").checked = false;
+
+        document.getElementById("dateStarted").value = "";
+
+        document.getElementById("targetDate").value = "";
       }
 
       function confirmDelete(id) {
@@ -577,13 +699,16 @@
               return;
             }
 
-            tasks = imported;
+            const existingIds = new Set(tasks.map((t) => t.id));
+
+            const newTasks = imported.filter((t) => !existingIds.has(t.id));
+
+            tasks = [...tasks, ...newTasks];
 
             saveTasks();
-
             renderTasks();
 
-            alert("Backup restored successfully!");
+            showSuccess(`Imported ${newTasks.length} new task(s)!`);
           } catch (error) {
             alert("Invalid JSON file");
           }
@@ -595,7 +720,7 @@
       function setDynamicTitle() {
         const fileName =
           window.location.pathname.split("/").pop().replace(".html", "") ||
-          "Task Tracker";
+          "OrboEvents Task Tracker";
 
         const formatted = fileName
           .replace(/[-_]/g, " ")
@@ -605,6 +730,16 @@
       }
 
       setDynamicTitle();
+
+      const input = document.getElementById("appTitleInput");
+
+      input.addEventListener("input", () => {
+        const value = input.value || "Task Tracker";
+
+        document.getElementById("appTitle").innerText = value;
+
+        document.title = value;
+      });
     </script>
   </body>
 </html>
